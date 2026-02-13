@@ -1,0 +1,79 @@
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.icon-wrapper {
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-wrapper.balance {
+    background-color: #EEF2FF;
+    /* Indigo 50 */
+    color: var(--primary);
+}
+
+.icon-wrapper.income {
+    background-color: #ECFDF5;
+    /* Emerald 50 */
+    color: var(--success);
+}
+
+.icon-wrapper.expense {
+    background-color: #FEF2F2;
+    /* Red 50 */
+    color: var(--danger);
+}
+
+.trend-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 20px;
+}
+
+.trend-badge.positive {
+    background-color: #ECFDF5;
+    color: var(--success);
+}
+
+.trend-badge.negative {
+    background-color: #FEF2F2;
+    color: var(--danger);
+}
+
+.stat-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-title {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.stat-amount {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+}

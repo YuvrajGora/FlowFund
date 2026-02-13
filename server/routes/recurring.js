@@ -17,16 +17,18 @@ const authenticateToken = (req, res, next) => {
 };
 
 // GET /api/recurring
-router.get('/', authenticateToken, (req, res) => {
-    const sql = `SELECT * FROM recurring_transactions WHERE user_id = ?`;
-    db.all(sql, [req.user.id], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+router.get('/', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT * FROM recurring_transactions WHERE user_id = ?`;
+        const { rows } = await db.query(sql, [req.user.id]);
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // POST /api/recurring - Create Rule
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     const { type, title, amount, category, frequency } = req.body;
 
     // Calculate next_due
@@ -37,55 +39,49 @@ router.post('/', authenticateToken, (req, res) => {
 
     const sql = `INSERT INTO recurring_transactions (user_id, type, title, amount, category, frequency, last_processed, next_due) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    // Initial last_processed is NOW because we assume the first transaction is created immediately by the user manually, 
-    // OR we could process it immediately. The user requirement implies "mark as recurring", so usually the first one is the "template".
-    // Let's assume the user creates a transaction AND checks "Recurring". So we create the rule and set next_due to next cycle.
-
-    db.run(sql, [req.user.id, type, title, amount, category, frequency, now.toISOString(), nextDue.toISOString()], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: this.lastID, message: 'Recurring rule created' });
-    });
+    try {
+        const result = await db.execute(sql, [req.user.id, type, title, amount, category, frequency, now.toISOString(), nextDue.toISOString()]);
+        res.json({ id: result.lastID || result.rows?.[0]?.id, message: 'Recurring rule created' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // POST /api/recurring/process - Check for due transactions
-router.post('/process', authenticateToken, (req, res) => {
+router.post('/process', authenticateToken, async (req, res) => {
     const sql = `SELECT * FROM recurring_transactions WHERE user_id = ? AND next_due <= ?`;
     const now = new Date().toISOString();
 
-    db.all(sql, [req.user.id, now], (err, rules) => {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const { rows: rules } = await db.query(sql, [req.user.id, now]);
 
         if (rules.length === 0) return res.json({ message: 'No due recurring transactions' });
 
-        let processedCount = 0;
-        const processRule = (rule) => {
-            return new Promise((resolve, reject) => {
-                // 1. Create Transaction
-                const txSql = `INSERT INTO transactions (user_id, type, title, amount, category, date) VALUES (?, ?, ?, ?, ?, ?)`;
-                // Use the 'next_due' date as the transaction date (or now?) - usually 'now' is better for "created just now"
-                const txDate = new Date().toISOString();
+        const processRule = async (rule) => {
+            // 1. Create Transaction
+            const txSql = `INSERT INTO transactions (user_id, type, title, amount, category, date) VALUES (?, ?, ?, ?, ?, ?)`;
+            const txDate = new Date().toISOString();
 
-                db.run(txSql, [rule.user_id, rule.type, rule.title, rule.amount, rule.category, txDate], function (err) {
-                    if (err) return reject(err);
+            await db.execute(txSql, [rule.user_id, rule.type, rule.title, rule.amount, rule.category, txDate]);
 
-                    // 2. Update Rule (Next Due)
-                    let nextDue = new Date(rule.next_due);
-                    if (rule.frequency === 'weekly') nextDue.setDate(nextDue.getDate() + 7);
-                    if (rule.frequency === 'monthly') nextDue.setMonth(nextDue.getMonth() + 1);
+            // 2. Update Rule (Next Due)
+            let nextDue = new Date(rule.next_due);
+            if (rule.frequency === 'weekly') nextDue.setDate(nextDue.getDate() + 7);
+            if (rule.frequency === 'monthly') nextDue.setMonth(nextDue.getMonth() + 1);
 
-                    const updateSql = `UPDATE recurring_transactions SET last_processed = ?, next_due = ? WHERE id = ?`;
-                    db.run(updateSql, [now, nextDue.toISOString(), rule.id], (err) => {
-                        if (err) return reject(err);
-                        resolve();
-                    });
-                });
-            });
+            const updateSql = `UPDATE recurring_transactions SET last_processed = ?, next_due = ? WHERE id = ?`;
+            await db.execute(updateSql, [now, nextDue.toISOString(), rule.id]);
         };
 
-        Promise.all(rules.map(processRule))
-            .then(() => res.json({ message: `Processed ${rules.length} recurring transactions` }))
-            .catch(err => res.status(500).json({ error: err.message }));
-    });
+        // Process all rules sequentially or parallel
+        for (const rule of rules) {
+            await processRule(rule);
+        }
+
+        res.json({ message: `Processed ${rules.length} recurring transactions` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 export default router;

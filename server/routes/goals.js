@@ -17,34 +17,40 @@ const authenticateToken = (req, res, next) => {
 };
 
 // GET /api/goals
-router.get('/', authenticateToken, (req, res) => {
-    const sql = `SELECT * FROM goals WHERE user_id = ?`;
-    db.all(sql, [req.user.id], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+router.get('/', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT * FROM goals WHERE user_id = ?`;
+        const { rows } = await db.query(sql, [req.user.id]);
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // POST /api/goals
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     const { name, target_amount, deadline, current_amount } = req.body;
     if (!name || !target_amount) return res.status(400).json({ error: 'Name and target amount are required' });
 
-    const sql = `INSERT INTO goals (user_id, name, target_amount, deadline, current_amount) VALUES (?, ?, ?, ?, ?)`;
-    db.run(sql, [req.user.id, name, target_amount, deadline, current_amount || 0], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: this.lastID, name, target_amount, deadline, current_amount: current_amount || 0 });
-    });
+    try {
+        const sql = `INSERT INTO goals (user_id, name, target_amount, deadline, current_amount) VALUES (?, ?, ?, ?, ?)`;
+        const result = await db.execute(sql, [req.user.id, name, target_amount, deadline, current_amount || 0]);
+        res.json({ id: result.lastID || result.rows?.[0]?.id, name, target_amount, deadline, current_amount: current_amount || 0 });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // PUT /api/goals/:id (Update progress)
-router.put('/:id', authenticateToken, (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
     const { current_amount } = req.body;
-    const sql = `UPDATE goals SET current_amount = ? WHERE id = ? AND user_id = ?`;
-    db.run(sql, [current_amount, req.params.id, req.user.id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+    try {
+        const sql = `UPDATE goals SET current_amount = ? WHERE id = ? AND user_id = ?`;
+        await db.execute(sql, [current_amount, req.params.id, req.user.id]);
         res.json({ message: 'Goal updated' });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 export default router;

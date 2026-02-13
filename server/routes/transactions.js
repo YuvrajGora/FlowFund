@@ -20,31 +20,33 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Get all transactions for user
-router.get('/', authenticateToken, (req, res) => {
-    const sql = `SELECT * FROM transactions WHERE user_id = ? ORDER BY id DESC`;
-    db.all(sql, [req.user.id], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+router.get('/', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT * FROM transactions WHERE user_id = ? ORDER BY id DESC`;
+        const { rows } = await db.query(sql, [req.user.id]);
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Add new transaction
-router.post('/', authenticateToken, (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
     const { title, amount, type, category, date } = req.body;
 
     if (!title || !amount || !type || !category) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const sql = `INSERT INTO transactions (user_id, title, amount, type, category, date) VALUES (?, ?, ?, ?, ?, ?)`;
-    const params = [req.user.id, title, amount, type, category, date || new Date().toISOString()];
+    try {
+        const sql = `INSERT INTO transactions (user_id, title, amount, type, category, date) VALUES (?, ?, ?, ?, ?, ?)`;
+        const params = [req.user.id, title, amount, type, category, date || new Date().toISOString()];
 
-    db.run(sql, params, function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+        const result = await db.execute(sql, params);
 
         // Return the created transaction
         res.status(201).json({
-            id: this.lastID,
+            id: result.lastID || result.rows?.[0]?.id, // Adjust based on adapter return for Postgres (rows) vs SQLite (lastID)
             user_id: req.user.id,
             title,
             amount,
@@ -52,7 +54,9 @@ router.post('/', authenticateToken, (req, res) => {
             category,
             date: params[5]
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 export default router;

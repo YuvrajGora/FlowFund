@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isProduction = process.env.NODE_ENV === 'production' || process.env.DATABASE_URL;
+const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
 
 let db;
 
@@ -86,6 +86,9 @@ if (isProduction) {
       console.error('Error opening database:', err.message);
     } else {
       console.log('Connected to the SQLite database.');
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('WARNING: Running in production mode with SQLite. Data will be ephemeral on some platforms (like Render Free Tier). Set DATABASE_URL to use PostgreSQL.');
+      }
       initDb(); // Call initDb for SQLite development
     }
   });

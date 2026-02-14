@@ -102,5 +102,19 @@
 
 .summary-card.info .icon-wrapper {
     background: var(--primary-light);
-    color: var(--primary);
-}
+
+    @media (max-width: 480px) {
+        .summary-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-3);
+        }
+
+        .summary-card {
+            padding: 12px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+    }

@@ -28,6 +28,26 @@
     }
 }
 
+@media (max-width: 600px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-4);
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        /* Stack cards on very small screens */
+    }
+
+    .dashboard-content-grid {
+        display: flex;
+        flex-direction: column-reverse;
+        /* Put quick actions below transactions on mobile if desired, or keep standard */
+        gap: var(--spacing-6);
+    }
+}
+
 .main-section {
     min-height: 400px;
 }

@@ -301,14 +301,60 @@ button:active {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes pulse {
+50% {
+  opacity: .5;
+}
+}
 
-  0%,
-  100% {
-    opacity: 1;
+/* Mobile Layout Adjustments */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
   }
 
-  50% {
-    opacity: .5;
+  .sidebar-wrapper {
+    display: none;
+    /* Hide sidebar completely on mobile */
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding-bottom: 80px;
+    /* Space for Bottom Nav */
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .content-wrapper {
+    padding: var(--spacing-4);
+    /* Reduce padding on mobile */
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Mobile Layout Adjustments */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .sidebar-wrapper {
+    display: none;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding-bottom: 80px;
+  }
+
+  .content-wrapper {
+    padding: var(--spacing-4);
   }
 }

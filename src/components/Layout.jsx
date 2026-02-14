@@ -3,11 +3,7 @@ import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import './Layout.css';
 
-import MobileNav from './MobileNav';
-
 const Layout = ({ children }) => {
-    // Sidebar state is redundant for mobile now as we use MobileNav
-    // But keeping it for desktop toggle if needed
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const toggleSidebar = () => {
@@ -16,21 +12,20 @@ const Layout = ({ children }) => {
 
     return (
         <div className="app-container">
-            {/* Sidebar for Desktop */}
+            {/* Overlay for mobile when sidebar is open */}
+            {sidebarOpen && (
+                <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+            )}
+
             <div className={`sidebar-wrapper ${sidebarOpen ? 'open' : ''}`}>
                 <Sidebar />
             </div>
 
             <div className="main-content">
-                {/* Navbar handles user profile & theme toggle */}
                 <Navbar toggleSidebar={toggleSidebar} />
-
                 <main className="content-wrapper">
                     {children}
                 </main>
-
-                {/* Mobile Bottom Navigation */}
-                <MobileNav />
             </div>
         </div>
     );

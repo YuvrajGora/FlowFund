@@ -117,23 +117,5 @@
 .checkbox-label input {
     width: 16px;
     height: 16px;
-
-    @media (max-width: 480px) {
-        .modal-content {
-            padding: 20px;
-            width: 90%;
-            max-height: 90vh;
-            /* Prevent overflow on small landscape screens */
-            overflow-y: auto;
-        }
-
-        .form-row {
-            grid-template-columns: 1fr;
-            /* Stack columns */
-            gap: 12px;
-        }
-
-        .modal-header h3 {
-            font-size: 1.1rem;
-        }
-    }
+    margin: 0;
+}

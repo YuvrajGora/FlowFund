@@ -19,7 +19,8 @@ const Signup = () => {
 
         try {
             const res = await register(username, email, password);
-            setMessage(res.message);
+            // setMessage(res.message); // No longer needed as we redirect
+            navigate('/login');
         } catch (err) {
             setError(err.message || 'Failed to create account');
         }
@@ -34,38 +35,36 @@ const Signup = () => {
                 {error && <div className="auth-error">{error}</div>}
                 {message && <div className="auth-error" style={{ backgroundColor: '#ECFDF5', color: '#047857' }}>{message}</div>}
 
-                {!message && (
-                    <form onSubmit={handleSubmit} className="auth-form">
-                        <input
-                            type="text"
-                            className="auth-input"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
-                        <input
-                            type="email"
-                            className="auth-input"
-                            placeholder="Email Address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                        <input
-                            type="password"
-                            className="auth-input"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            minLength={6}
-                        />
-                        <button type="submit" className="auth-button">
-                            Sign Up
-                        </button>
-                    </form>
-                )}
+                <form onSubmit={handleSubmit} className="auth-form">
+                    <input
+                        type="text"
+                        className="auth-input"
+                        placeholder="Username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="email"
+                        className="auth-input"
+                        placeholder="Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                    <input
+                        type="password"
+                        className="auth-input"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={6}
+                    />
+                    <button type="submit" className="auth-button">
+                        Sign Up
+                    </button>
+                </form>
 
                 <div className="auth-footer">
                     Already have an account?

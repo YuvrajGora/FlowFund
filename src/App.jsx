@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import VerifyEmail from './components/VerifyEmail';
+
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import AddTransactionModal from './components/AddTransactionModal';
@@ -161,7 +161,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/verify" element={<VerifyEmail />} />
+
           <Route path="/*" element={
             <ProtectedRoute>
               <MainApp />

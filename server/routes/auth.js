@@ -22,20 +22,15 @@ router.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        // const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-        const sql = `INSERT INTO users (username, email, password, verification_token) VALUES (?, ?, ?, ?)`;
+        // Auto-verify user (Feature removed)
+        const sql = `INSERT INTO users (username, email, password, is_verified, verification_token) VALUES (?, ?, ?, ?, ?)`;
 
         try {
-            await db.execute(sql, [username, email, hashedPassword, token]);
+            await db.execute(sql, [username, email, hashedPassword, 1, null]);
 
-            // MOCK EMAIL SENDING
-            console.log('\n==================================================');
-            console.log(`📧  VERIFICATION LINK FOR ${email}:`);
-            console.log(`http://localhost:5173/verify?token=${token}`);
-            console.log('==================================================\n');
-
-            res.status(201).json({ message: 'Registration successful! Please check your email to verify account.' });
+            res.status(201).json({ message: 'Registration successful! You can now login.' });
         } catch (err) {
             if (err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key')) {
                 // Handle both SQLite and Postgres unique error messages roughly
@@ -84,9 +79,9 @@ router.post('/login', async (req, res) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-        if (user.is_verified === 0) {
-            return res.status(403).json({ error: 'Please verify your email before logging in.' });
-        }
+        // if (user.is_verified === 0) {
+        //     return res.status(403).json({ error: 'Please verify your email before logging in.' });
+        // }
 
         const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
         res.json({ token, user: { id: user.id, username: user.username } });

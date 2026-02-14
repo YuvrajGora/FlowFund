@@ -95,86 +95,58 @@ if (isProduction) {
 
   // Enable FK support for SQLite
   db.run("PRAGMA foreign_keys = ON");
+
+  // Call initDb in production too to ensure tables exist
+  if (process.env.NODE_ENV === 'production') {
+    initDb();
+  }
 }
 
-/* 
-   HELPER: We need to normalize SQL queries.
-   SQLite uses `?` for params.
-   Postgres uses `$1`, `$2`, etc.
-   
-   The adapter.query function tentatively tries to handle this, 
-   but simplistic regex replacement implies the query passed in MUST use `?`.
-   
-   WE WILL STANDARD ON USING `?` IN OUR CODE, and the Postgres adapter will convert it.
-*/
-const normalizeQuery = (text) => {
-  if (!isProduction) return text;
-  let index = 1;
-  return text.replace(/\?/g, () => `$${index++}`);
-};
-
-// Overwrite the adapter methods to use the normalizer
-const originalQuery = adapter.query;
-adapter.query = (text, params) => originalQuery(normalizeQuery(text), params);
-
-const originalExecute = adapter.execute;
-adapter.execute = (text, params) => originalExecute(normalizeQuery(text), params);
-
-const originalGet = adapter.get;
-adapter.get = (text, params) => originalGet(normalizeQuery(text), params);
-
-
 async function initDb() {
-  // For SQLite, we use serialize to ensure order. For Postgres, execute handles it.
-  // We'll use async/await for a more unified approach.
   try {
+    const isPg = isProduction;
+    const autoIncrement = isPg ? 'SERIAL' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    const textType = isPg ? 'TEXT' : 'TEXT'; // Same
+    const realType = isPg ? 'REAL' : 'REAL'; // Same
+    const dateType = isPg ? 'TIMESTAMP' : 'DATETIME'; // Postgres prefers TIMESTAMP, SQLite ignores type affinity but DATETIME is fine
+    // Note: SQLite uses CURRENT_TIMESTAMP. Postgres also supports it.
+
     // Users Table
     await adapter.execute(`CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id ${autoIncrement} PRIMARY KEY,
       username TEXT UNIQUE,
       email TEXT UNIQUE,
       password TEXT,
       is_verified INTEGER DEFAULT 0,
       verification_token TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at ${dateType} DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // Migration for existing users
-    const columns = [
-      "ALTER TABLE users ADD COLUMN email TEXT UNIQUE;",
-      "ALTER TABLE users ADD COLUMN is_verified INTEGER DEFAULT 0;",
-      "ALTER TABLE users ADD COLUMN verification_token TEXT;"
-    ];
-
-    columns.forEach(query => {
-      db.run(query, () => { });
-    });
-
     // Budgets Table
-    db.run(`CREATE TABLE IF NOT EXISTS budgets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await adapter.execute(`CREATE TABLE IF NOT EXISTS budgets (
+      id ${autoIncrement} PRIMARY KEY,
       user_id INTEGER,
       category TEXT,
       limit_amount REAL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at ${dateType} DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
     // Goals Table
-    db.run(`CREATE TABLE IF NOT EXISTS goals (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await adapter.execute(`CREATE TABLE IF NOT EXISTS goals (
+      id ${autoIncrement} PRIMARY KEY,
       user_id INTEGER,
       name TEXT,
       target_amount REAL,
       current_amount REAL DEFAULT 0,
       deadline DATE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at ${dateType} DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
     // Recurring Transactions Table
-    db.run(`CREATE TABLE IF NOT EXISTS recurring_transactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await adapter.execute(`CREATE TABLE IF NOT EXISTS recurring_transactions (
+      id ${autoIncrement} PRIMARY KEY,
       user_id INTEGER,
       type TEXT, -- 'income' or 'expense'
       title TEXT,
@@ -183,12 +155,13 @@ async function initDb() {
       frequency TEXT, -- 'monthly', 'weekly'
       last_processed DATE,
       next_due DATE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at ${dateType} DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS transactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+    // Transactions Table
+    await adapter.execute(`CREATE TABLE IF NOT EXISTS transactions (
+      id ${autoIncrement} PRIMARY KEY,
       user_id INTEGER,
       title TEXT,
       amount REAL,
@@ -197,6 +170,9 @@ async function initDb() {
       date TEXT,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
+
+    console.log('Database tables initialized.');
+
   } catch (err) {
     console.error('Error initializing database:', err);
   }

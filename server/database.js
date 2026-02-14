@@ -75,8 +75,9 @@ if (isProduction) {
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false } // Required for minimal SSL on many free tiers
   });
-  // No explicit initDb call here, as migrations are usually handled differently in production
-  // or the schema is expected to exist.
+
+  // Initialize tables for Postgres
+  initDb();
 } else {
   // Local SQLite
   console.log('Using Local SQLite Database');
@@ -101,6 +102,32 @@ if (isProduction) {
     initDb();
   }
 }
+
+/* 
+   HELPER: We need to normalize SQL queries.
+   SQLite uses `?` for params.
+   Postgres uses `$1`, `$2`, etc.
+   
+   The adapter.query function tentatively tries to handle this, 
+   but simplistic regex replacement implies the query passed in MUST use `?`.
+   
+   WE WILL STANDARD ON USING `?` IN OUR CODE, and the Postgres adapter will convert it.
+*/
+const normalizeQuery = (text) => {
+  if (!isProduction) return text;
+  let index = 1;
+  return text.replace(/\?/g, () => `$${index++}`);
+};
+
+// Overwrite the adapter methods to use the normalizer
+const originalQuery = adapter.query;
+adapter.query = (text, params) => originalQuery(normalizeQuery(text), params);
+
+const originalExecute = adapter.execute;
+adapter.execute = (text, params) => originalExecute(normalizeQuery(text), params);
+
+const originalGet = adapter.get;
+adapter.get = (text, params) => originalGet(normalizeQuery(text), params);
 
 async function initDb() {
   try {

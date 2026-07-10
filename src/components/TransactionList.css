@@ -1,0 +1,131 @@
+.transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px !important;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: transform 0.2s, background-color 0.2s;
+    cursor: pointer;
+    min-height: 56px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.transaction-item:active {
+    transform: scale(0.98);
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.tx-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tx-icon-wrapper {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Premium transparent color schemes */
+.tx-icon-wrapper.expense {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.tx-icon-wrapper.income {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.tx-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tx-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main, #ffffff);
+}
+
+.tx-date {
+    font-size: 0.8rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.tx-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.tx-amount {
+    font-weight: 750;
+    font-size: 1.05rem;
+    letter-spacing: -0.5px;
+}
+
+.tx-amount.expense {
+    color: #f87171; /* red-400 */
+}
+
+.tx-amount.income {
+    color: #34d399; /* green-400 */
+}
+
+.tx-category {
+    font-size: 0.75rem;
+    color: var(--text-muted, #94a3b8);
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 768px) {
+    .transaction-list {
+        padding: 0 !important;
+        gap: 10px;
+    }
+
+    .transaction-item {
+        padding: 16px;
+        min-height: 64px;
+        border-radius: 16px;
+    }
+
+    .tx-icon-wrapper {
+        width: 48px;
+        height: 48px;
+    }
+
+    .tx-title {
+        font-size: 1rem;
+    }
+
+    .tx-category {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+    }
+}

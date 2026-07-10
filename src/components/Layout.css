@@ -1,0 +1,74 @@
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--background);
+}
+
+.sidebar-wrapper {
+    z-index: 20;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 260px;
+    /* Width of sidebar */
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease;
+    width: calc(100% - 260px);
+}
+
+.content-wrapper {
+    padding: var(--spacing-8);
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .sidebar-wrapper, .sidebar-overlay {
+        display: none !important;
+    }
+
+    .content-wrapper {
+        padding: 16px;
+        padding-bottom: calc(96px + env(safe-area-inset-bottom));
+        overflow-x: hidden;
+    }
+}
+
+/* Pull to Refresh Indicator Styles */
+.pull-to-refresh-indicator {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    overflow: hidden;
+    width: 100%;
+}
+
+.refresh-spinner {
+    color: #4f46e5;
+}
+
+.refresh-spinner.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .pull-to-refresh-indicator {
+        display: flex;
+    }
+}

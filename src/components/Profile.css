@@ -1,0 +1,145 @@
+.profile-page-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.profile-header-back {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.profile-header-back h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.back-btn:active {
+    background-color: var(--border);
+}
+
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px;
+    text-align: center;
+    gap: 12px;
+}
+
+.profile-avatar-large {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+.profile-username {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+.profile-badge {
+    background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.profile-options {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.option-group {
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.option-item, .option-item-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: 100%;
+    text-align: left;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.option-item:last-child, .option-item-btn:last-child {
+    border-bottom: none;
+}
+
+.option-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text);
+}
+
+.option-value {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+.logout-btn-premium {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    border: none;
+    padding: 16px;
+    border-radius: var(--radius-lg, 12px);
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 1rem;
+    margin-top: 10px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.logout-btn-premium:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
+}

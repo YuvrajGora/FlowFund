@@ -1,0 +1,115 @@
+.skeleton-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.skeleton-bar {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-card {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 12px;
+    height: 120px;
+    width: 100%;
+}
+
+.skeleton-card.large {
+    height: 200px;
+}
+
+.skeleton-summary-card {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 12px;
+    height: 180px;
+    width: 100%;
+}
+
+.skeleton-circle {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--border) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.skeleton-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-bar.title {
+    width: 150px;
+    height: 24px;
+}
+
+.skeleton-bar.subtitle {
+    width: 250px;
+    height: 14px;
+}
+
+.skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.skeleton-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.skeleton-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 12px;
+    border-radius: 12px;
+}
+
+.skeleton-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.skeleton-bar.title-sm {
+    width: 100px;
+    height: 14px;
+}
+
+.skeleton-bar.subtitle-sm {
+    width: 70px;
+    height: 10px;
+}
+
+.skeleton-bar.amount-sm {
+    width: 60px;
+    height: 16px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}

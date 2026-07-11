@@ -32,9 +32,22 @@ const __dirname = path.dirname(__filename);
 // Serve static files from the dist directory (one level up from server)
 app.use(express.static(path.join(__dirname, '../dist')));
 
-// API Health check
+// API Health check with comprehensive JSON diagnostics
 app.get('/api/health', (req, res) => {
-    res.send('FlowFund API is running');
+    res.json({
+        status: 'OK',
+        message: 'FlowFund API is running',
+        version: '1.0.2-audit',
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            hasDatabaseUrl: typeof process.env.DATABASE_URL !== 'undefined',
+            hasJwtSecret: typeof process.env.JWT_SECRET !== 'undefined',
+            hasSecretKey: typeof process.env.SECRET_KEY !== 'undefined',
+            jwtSecretLength: process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0,
+            secretKeyLength: process.env.SECRET_KEY ? process.env.SECRET_KEY.length : 0
+        },
+        receivedHeaderKeys: Object.keys(req.headers)
+    });
 });
 
 // The "catchall" handler: for any request that doesn't

@@ -6,6 +6,10 @@ import { SECRET_KEY } from '../middleware/auth.js';
 
 const router = express.Router();
 
+if (process.env.NODE_ENV !== 'production') {
+    console.log('[Auth Audit] Auth Route SECRET_KEY loaded. Length:', SECRET_KEY.length);
+}
+
 // Register
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;

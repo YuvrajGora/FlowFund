@@ -11,7 +11,7 @@ export const useData = () => {
 };
 
 export const DataProvider = ({ children }) => {
-    const { token } = useAuth();
+    const { token, authenticatedFetch } = useAuth();
     const [transactions, setTransactions] = useState([]);
     const [budgets, setBudgets] = useState({});
     const [goals, setGoals] = useState([]);
@@ -33,12 +33,10 @@ export const DataProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const headers = { 'Authorization': `Bearer ${token}` };
-            
             const [txRes, budgetRes, goalRes] = await Promise.all([
-                fetch('/api/transactions', { headers }),
-                fetch('/api/budgets', { headers }),
-                fetch('/api/goals', { headers })
+                authenticatedFetch('/api/transactions'),
+                authenticatedFetch('/api/budgets'),
+                authenticatedFetch('/api/goals')
             ]);
 
             if (!txRes.ok || !budgetRes.ok || !goalRes.ok) {
@@ -64,14 +62,16 @@ export const DataProvider = ({ children }) => {
 
             setGoals(goalData);
         } catch (err) {
-            if (import.meta.env.DEV) {
-                console.error('Error fetching data:', err);
+            if (err.message !== 'Session expired') {
+                if (import.meta.env.DEV) {
+                    console.error('Error fetching data:', err);
+                }
+                toast.error(err.message || 'Failed to load your financial data');
             }
-            toast.error(err.message || 'Failed to load your financial data');
         } finally {
             setLoading(false);
         }
-    }, [token, clearData]);
+    }, [token, clearData, authenticatedFetch]);
 
     // Initial load
     useEffect(() => {
@@ -86,39 +86,37 @@ export const DataProvider = ({ children }) => {
         if (!token) return;
         setIsProcessingRecurring(true);
         try {
-            const res = await fetch('/api/recurring/process', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+            const res = await authenticatedFetch('/api/recurring/process', {
+                method: 'POST'
             });
             if (!res.ok) throw new Error('Failed to process recurring transactions');
             const data = await res.json();
             if (data.processedCount > 0) {
-                const txRes = await fetch('/api/transactions', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const txRes = await authenticatedFetch('/api/transactions');
                 if (txRes.ok) {
                     const txData = await txRes.json();
                     setTransactions(txData);
                 }
             }
         } catch (err) {
-            if (import.meta.env.DEV) {
-                console.error('Recurring process error:', err);
+            if (err.message !== 'Session expired') {
+                if (import.meta.env.DEV) {
+                    console.error('Recurring process error:', err);
+                }
+                toast.error('Could not check recurring transactions');
             }
-            toast.error('Could not check recurring transactions');
         } finally {
             setIsProcessingRecurring(false);
         }
-    }, [token]);
+    }, [token, authenticatedFetch]);
 
     const addTransaction = useCallback(async (txData) => {
         if (!token) return null;
         try {
-            const res = await fetch('/api/transactions', {
+            const res = await authenticatedFetch('/api/transactions', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(txData)
             });
@@ -128,11 +126,10 @@ export const DataProvider = ({ children }) => {
             setTransactions(prev => [data, ...prev]);
 
             if (txData.isRecurring) {
-                const recRes = await fetch('/api/recurring', {
+                const recRes = await authenticatedFetch('/api/recurring', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         type: txData.type,
@@ -149,22 +146,23 @@ export const DataProvider = ({ children }) => {
             toast.success('Transaction added successfully');
             return data;
         } catch (err) {
-            if (import.meta.env.DEV) {
-                console.error('Add transaction error:', err);
+            if (err.message !== 'Session expired') {
+                if (import.meta.env.DEV) {
+                    console.error('Add transaction error:', err);
+                }
+                toast.error(err.message || 'Failed to add transaction');
             }
-            toast.error(err.message || 'Failed to add transaction');
             throw err;
         }
-    }, [token]);
+    }, [token, authenticatedFetch]);
 
     const updateBudget = useCallback(async (category, limitAmount) => {
         if (!token) return null;
         try {
-            const res = await fetch('/api/budgets', {
+            const res = await authenticatedFetch('/api/budgets', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ category, limit_amount: limitAmount })
             });
@@ -180,22 +178,23 @@ export const DataProvider = ({ children }) => {
             toast.success('Budget saved successfully');
             return data;
         } catch (err) {
-            if (import.meta.env.DEV) {
-                console.error('Update budget error:', err);
+            if (err.message !== 'Session expired') {
+                if (import.meta.env.DEV) {
+                    console.error('Update budget error:', err);
+                }
+                toast.error(err.message || 'Failed to save budget');
             }
-            toast.error(err.message || 'Failed to save budget');
             throw err;
         }
-    }, [token]);
+    }, [token, authenticatedFetch]);
 
     const addGoal = useCallback(async (goalData) => {
         if (!token) return null;
         try {
-            const res = await fetch('/api/goals', {
+            const res = await authenticatedFetch('/api/goals', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(goalData)
             });
@@ -207,22 +206,23 @@ export const DataProvider = ({ children }) => {
             toast.success('Goal created successfully');
             return data;
         } catch (err) {
-            if (import.meta.env.DEV) {
-                console.error('Add goal error:', err);
+            if (err.message !== 'Session expired') {
+                if (import.meta.env.DEV) {
+                    console.error('Add goal error:', err);
+                }
+                toast.error(err.message || 'Failed to create goal');
             }
-            toast.error(err.message || 'Failed to create goal');
             throw err;
         }
-    }, [token]);
+    }, [token, authenticatedFetch]);
 
     const updateGoalProgress = useCallback(async (goalId, currentAmount) => {
         if (!token) return null;
         try {
-            const res = await fetch(`/api/goals/${goalId}`, {
+            const res = await authenticatedFetch(`/api/goals/${goalId}`, {
                 method: 'PUT',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ current_amount: currentAmount })
             });
@@ -234,13 +234,15 @@ export const DataProvider = ({ children }) => {
             toast.success('Goal progress updated');
             return data;
         } catch (err) {
-            if (import.meta.env.DEV) {
-                console.error('Update goal error:', err);
+            if (err.message !== 'Session expired') {
+                if (import.meta.env.DEV) {
+                    console.error('Update goal error:', err);
+                }
+                toast.error(err.message || 'Failed to update goal progress');
             }
-            toast.error(err.message || 'Failed to update goal progress');
             throw err;
         }
-    }, [token]);
+    }, [token, authenticatedFetch]);
 
     const value = {
         transactions,

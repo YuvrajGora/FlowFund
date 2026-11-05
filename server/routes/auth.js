@@ -6,10 +6,6 @@ import { SECRET_KEY } from '../middleware/auth.js';
 
 const router = express.Router();
 
-if (process.env.NODE_ENV !== 'production') {
-    console.log('[Auth Audit] Auth Route SECRET_KEY loaded. Length:', SECRET_KEY.length);
-}
-
 // Register
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
@@ -31,7 +27,7 @@ router.post('/register', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Auto-verify user (Feature removed)
+        // Auto-verify user for seamless experience
         const sql = `INSERT INTO users (username, email, password, is_verified, verification_token) VALUES (?, ?, ?, ?, ?) RETURNING id`;
 
         try {
@@ -39,9 +35,11 @@ router.post('/register', async (req, res) => {
 
             res.status(201).json({ message: 'Registration successful! You can now login.' });
         } catch (err) {
-            if (err.message.includes('UNIQUE constraint failed') || err.message.includes('duplicate key')) {
-                // Handle both SQLite and Postgres unique error messages roughly
-                if (err.message.includes('email') || err.detail?.includes('email')) return res.status(400).json({ error: 'Email already exists' });
+            const errStr = (err.message || '') + (err.detail || '');
+            if (errStr.includes('UNIQUE') || errStr.includes('duplicate key') || err.code === '23505') {
+                if (errStr.includes('email')) {
+                    return res.status(400).json({ error: 'Email already exists' });
+                }
                 return res.status(400).json({ error: 'Username already exists' });
             }
             throw err;
@@ -92,7 +90,8 @@ router.post('/login', async (req, res) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) return res.status(401).json({ error: 'Invalid credentials' });
 
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
+        const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
+        const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn });
         res.json({ token, user: { id: user.id, username: user.username } });
     } catch (err) {
         if (process.env.NODE_ENV !== 'production') {

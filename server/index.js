@@ -4,7 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { dbReady, isPostgres } from './database.js';
+import { dbReady, isPostgres, closeDb } from './database.js';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import budgetRoutes from './routes/budgets.js';
@@ -80,6 +80,23 @@ if (isMain && process.env.NODE_ENV !== 'test') {
         console.error('Fatal database initialization failure on startup:', err);
         process.exit(1);
     });
+
+    const handleShutdown = async (signal) => {
+        console.log(`Received ${signal}, shutting down gracefully...`);
+        if (server) {
+            server.close(async () => {
+                await closeDb();
+                console.log('Server and database connections closed cleanly.');
+                process.exit(0);
+            });
+        } else {
+            await closeDb();
+            process.exit(0);
+        }
+    };
+
+    process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+    process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 export { app, server };

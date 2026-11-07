@@ -35,12 +35,21 @@ router.post('/register', async (req, res) => {
 
             res.status(201).json({ message: 'Registration successful! You can now login.' });
         } catch (err) {
-            const errStr = (err.message || '') + (err.detail || '');
-            if (errStr.includes('UNIQUE') || errStr.includes('duplicate key') || err.code === '23505') {
-                if (errStr.includes('email')) {
+            const detail = err.detail || err.details || err.data?.details || '';
+            const constraint = err.constraint || '';
+            const message = err.message || '';
+            const isUniqueViolation = err.code === '23505' || 
+                                     message.includes('UNIQUE constraint failed') || 
+                                     message.includes('duplicate key');
+
+            if (isUniqueViolation) {
+                if (detail.includes('(email)') || constraint.includes('email') || message.includes('users.email')) {
                     return res.status(400).json({ error: 'Email already exists' });
                 }
-                return res.status(400).json({ error: 'Username already exists' });
+                if (detail.includes('(username)') || constraint.includes('username') || message.includes('users.username')) {
+                    return res.status(400).json({ error: 'Username already exists' });
+                }
+                return res.status(400).json({ error: 'Username or email already exists' });
             }
             throw err;
         }

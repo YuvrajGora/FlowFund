@@ -214,3 +214,4 @@ test('API: Protected Transaction, Budget, and Goal Operations', async () => {
     assert.equal(recurringList.length, 1);
     assert.equal(recurringList[0].title, 'Internet Bill');
 });
+

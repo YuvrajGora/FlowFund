@@ -108,3 +108,4 @@ test('Auth Middleware: Valid JWT attaches user to req and calls next()', () => {
     assert.equal(req.user.id, 42);
     assert.equal(req.user.username, 'validuser');
 });
+

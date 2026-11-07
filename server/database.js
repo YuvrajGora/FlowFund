@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const isPostgres = Boolean(process.env.DATABASE_URL);
+export let isPostgres = Boolean(process.env.DATABASE_URL);
 
 let db;
 
@@ -29,7 +29,7 @@ const adapter = {
     if (isPostgres) {
       try {
         const res = await db.query(sql, params);
-        return { rows: res.rows, rowCount: res.rowCount };
+        return { rows: res.rows || [], rowCount: res.rowCount || 0 };
       } catch (err) {
         console.error('Database Query Error:', err);
         throw err;
@@ -48,7 +48,13 @@ const adapter = {
   execute: async (text, params = []) => {
     const sql = normalizeQuery(text);
     if (isPostgres) {
-      return adapter.query(sql, params);
+      try {
+        const res = await db.query(sql, params);
+        return { rows: res.rows || [], rowCount: res.rowCount || 0 };
+      } catch (err) {
+        console.error('Database Execute Error:', err);
+        throw err;
+      }
     } else {
       return new Promise((resolve, reject) => {
         db.run(sql, params, function (err) {
@@ -63,8 +69,13 @@ const adapter = {
   get: async (text, params = []) => {
     const sql = normalizeQuery(text);
     if (isPostgres) {
-      const res = await adapter.query(sql, params);
-      return res.rows[0];
+      try {
+        const res = await db.query(sql, params);
+        return res.rows ? res.rows[0] : undefined;
+      } catch (err) {
+        console.error('Database Get Error:', err);
+        throw err;
+      }
     } else {
       return new Promise((resolve, reject) => {
         db.get(sql, params, (err, row) => {
@@ -141,7 +152,7 @@ export async function initDb() {
       FOREIGN KEY(user_id) REFERENCES users(id)
     )`);
 
-    console.log('Database tables initialized.');
+    console.log(`Database tables initialized for ${isPostgres ? 'PostgreSQL' : 'SQLite'}.`);
   } catch (err) {
     console.error('Error initializing database:', err);
     throw err;
@@ -170,7 +181,7 @@ if (isPostgres) {
   const dbPath = process.env.SQLITE_DB_PATH || path.resolve(__dirname, 'database.sqlite');
 
   dbReady = new Promise((resolve, reject) => {
-    db = new sqlite3.Database(dbPath, (err) => {
+    const sqliteInstance = new sqlite3.Database(dbPath, (err) => {
       if (err) {
         console.error('Error opening database:', err.message);
         return reject(err);
@@ -179,14 +190,32 @@ if (isPostgres) {
       if (process.env.NODE_ENV === 'production') {
         console.warn('WARNING: Running in production mode with SQLite. Data will be ephemeral on some platforms (like Render Free Tier). Set DATABASE_URL to use PostgreSQL.');
       }
-      db.run("PRAGMA foreign_keys = ON", (pragmaErr) => {
+      sqliteInstance.run("PRAGMA foreign_keys = ON", (pragmaErr) => {
         if (pragmaErr) console.warn('Could not enable foreign keys:', pragmaErr);
         initDb().then(resolve).catch(reject);
       });
     });
+    db = sqliteInstance;
   });
 }
 
+export async function closeDb() {
+  if (db) {
+    if (isPostgres && typeof db.end === 'function') {
+      await db.end();
+    } else if (typeof db.close === 'function') {
+      await new Promise((resolve, reject) => {
+        db.close((err) => (err ? reject(err) : resolve()));
+      });
+    }
+  }
+}
+
 export const getRawDb = () => db;
+
+export function setRawDb(newDbInstance, isPg = isPostgres) {
+  db = newDbInstance;
+  isPostgres = isPg;
+}
 
 export default adapter;

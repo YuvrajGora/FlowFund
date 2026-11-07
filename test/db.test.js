@@ -49,3 +49,4 @@ test('Database Adapter CRUD Operations', async () => {
     const deleted = await adapter.get('SELECT * FROM users WHERE id = ?', [user.id]);
     assert.equal(deleted, undefined);
 });
+

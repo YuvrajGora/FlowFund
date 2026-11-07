@@ -104,7 +104,7 @@ FlowFund's SQL adapter automatically detects `DATABASE_URL` and switches from SQ
 
 ### 2. Deploying on Render (Example)
 1. Link your GitHub repository to a new **Web Service** on Render.
-2. Build Command: `npm install && npm run build`
+2. Build Command: `npm install --include=dev && npm run build`
 3. Start Command: `npm run start`
 4. Configure Environment Variables (`JWT_SECRET` (or `SECRET_KEY`), and `DATABASE_URL` linked to your Render PostgreSQL database).
 
